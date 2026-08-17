@@ -1,0 +1,12 @@
+backend/venv/
+backend/*.db
+backend/instance/
+backend/generated_projects/
+backend/.env
+.env
+.git/
+.gitignore
+README.md
+runtime.txt
+Procfile
+.dockerignore

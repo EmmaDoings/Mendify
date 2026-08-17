@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mendify - AI Engineering Workspace</title>
+
+  <!-- Auth gate runs before styles to prevent FOUC -->
+  <script src="auth-gate.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="app-sidebar" aria-label="Primary navigation">
+
+      <!-- BUG FIX: removed duplicate .brand block that was rendering two
+           logo+name rows in the sidebar. The second copy also referenced
+           a non-existent "logos.png" asset. -->
+      <div class="brand">
+        <div class="logo-image">
+          <i data-lucide="bot" style="width:24px;height:24px"></i>
+        </div>
+        <div>
+          <span class="brand-name">Mendify</span>
+          <span class="brand-subtitle">AI engineering workspace</span>
+        </div>
+      </div>
+
+      <!-- BUG FIX: <nav> was missing its closing ">" making the attribute
+           value bleed into the first child button as text content. -->
+      <nav class="header-nav">
+        <button class="nav-btn active" data-panel="compiler" type="button">
+          <i data-lucide="blocks"></i>
+          <span>Compiler</span>
+        </button>
+        <button class="nav-btn" data-panel="debugger" type="button">
+          <i data-lucide="bug"></i>
+          <span>Debugger</span>
+        </button>
+        <button class="nav-btn" data-panel="security" type="button">
+          <i data-lucide="shield-check"></i>
+          <span>Security</span>
+        </button>
+        <button class="nav-btn" data-panel="chat" type="button">
+          <i data-lucide="messages-square"></i>
+          <span>AI Chat</span>
+        </button>
+        <button class="nav-btn" data-panel="settings" type="button">
+          <i data-lucide="settings"></i>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="mini-stat">
+          <span>Status</span>
+          <strong id="statusIndicator" data-status="unknown">Ready</strong>
+        </div>
+        <div class="saved-projects">
+          <div class="saved-projects-header">
+            <span>Saved Projects</span>
+            <button class="btn btn-sm btn-ghost" id="refreshProjectsBtn" type="button" title="Refresh">
+              <i data-lucide="refresh-cw"></i>
+            </button>
+          </div>
+          <div class="saved-projects-list" id="savedProjectsList">
+            <span class="saved-projects-empty">No saved projects</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="app-main">
+      <header class="site-header">
+        <div>
+          <p class="page-kicker">Workspace</p>
+          <h1 id="activePageTitle">Project Compiler</h1>
+        </div>
+
+        <div class="header-right">
+          <button class="quick-nav" data-panel-target="settings" type="button" title="Open settings" aria-label="Open settings">
+            <i data-lucide="palette"></i>
+          </button>
+          <div class="user-badge hidden" id="userBadge">
+            <span class="user-avatar" id="userAvatar">ME</span>
+            <span class="user-name" id="userName"></span>
+            <button class="logout-btn quick-nav" id="logoutBtn" title="Log out" type="button" aria-label="Log out">
+              <i data-lucide="log-out"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <section class="dashboard-band" aria-label="Workspace overview">
+          <div>
+            <span class="metric-label">Active agent</span>
+            <strong>Mendify AI</strong>
+          </div>
+          <div>
+            <span class="metric-label">Workflow</span>
+            <strong>Build → Debug → Secure</strong>
+          </div>
+          <div>
+            <span class="metric-label">Output mode</span>
+            <strong>Live files</strong>
+          </div>
+        </section>
+
+        <section class="panel active" id="panel-compiler" aria-labelledby="compilerTitle">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Generate</p>
+              <h2 id="compilerTitle">Project Compiler</h2>
+            </div>
+            <p>Describe the product and Mendify will return a full project structure with editable files.</p>
+          </div>
+
+          <div class="split-layout compiler-layout">
+            <div class="section-card">
+              <div class="section-title">
+                <span>Project Brief</span>
+                <code>compile.request</code>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-group full-width">
+                  <label for="appIdea">App Idea</label>
+                  <textarea
+                    id="appIdea"
+                    rows="8"
+                    placeholder="A customer support dashboard with ticket queues, team roles, analytics, and audit history..."
+                  ></textarea>
+                </div>
+
+                <div class="form-group">
+                  <label for="stackSelect">Frontend Stack</label>
+                  <select id="stackSelect">
+                    <option value="vanilla">Vanilla JS + HTML5 + CSS3</option>
+                    <option value="react">React (JSX)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="backendSelect">Backend Stack</label>
+                  <select id="backendSelect">
+                    <option value="flask">Python (Flask)</option>
+                    <option value="express">Node.js (Express)</option>
+                    <option value="go">Go (net/http)</option>
+                    <option value="php">PHP</option>
+                    <option value="none">None (Frontend Only)</option>
+                  </select>
+                </div>
+              </div>
+
+              <button class="btn btn-primary btn-wide" id="compileBtn" type="button">
+                <i data-lucide="zap"></i>
+                Compile Project
+              </button>
+            </div>
+
+            <div class="section-card output-card">
+              <div class="section-title">
+                <span>Generated Files</span>
+                <code>artifact.preview</code>
+              </div>
+
+              <div class="output-area hidden" id="compilerOutput">
+                <div class="output-header">
+                  <span class="output-title">Generated Project</span>
+                  <div class="output-actions">
+                    <button class="btn btn-sm btn-ghost" id="saveProjectBtn" type="button">
+                      <i data-lucide="save"></i>
+                      Save
+                    </button>
+                    <button class="btn btn-sm btn-ghost" id="copyCompilerBtn" type="button">
+                      <i data-lucide="copy"></i>
+                      Copy All
+                    </button>
+                  </div>
+                </div>
+                <div class="folder-tree" id="folderTree"></div>
+                <div class="file-tabs" id="fileTabs"></div>
+                <div class="file-content-area" id="fileContentArea"></div>
+              </div>
+
+              <div class="empty-state">
+                <i data-lucide="file-code"></i>
+                <strong>No project generated yet</strong>
+                <span>Compiled files will appear here as tabs with line-numbered previews.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-debugger" aria-labelledby="debuggerTitle">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Repair</p>
+              <h2 id="debuggerTitle">Auto-Debugger</h2>
+            </div>
+            <p>Paste a file and get severity-ranked findings plus a fixed version.</p>
+          </div>
+
+          <div class="split-layout">
+            <div class="section-card">
+              <div class="section-title">
+                <span>Source</span>
+                <code>debug.input</code>
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="debugLang">Language</label>
+                  <select id="debugLang">
+                    <option value="javascript">JavaScript</option>
+                    <option value="python">Python</option>
+                    <option value="typescript">TypeScript</option>
+                    <option value="go">Go</option>
+                    <option value="php">PHP</option>
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                  </select>
+                </div>
+                <div class="form-group full-width">
+                  <label for="buggyCode">Code</label>
+                  <textarea id="buggyCode" rows="14" placeholder="// Paste code to debug..."></textarea>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-wide" id="debugBtn" type="button">
+                <i data-lucide="bug"></i>
+                Run Auto-Debugger
+              </button>
+            </div>
+
+            <div class="section-card output-card">
+              <div class="section-title">
+                <span>Debug Output</span>
+                <code>debug.report</code>
+              </div>
+              <div class="output-area hidden" id="debugOutput">
+                <div class="output-header">
+                  <span class="output-title">Findings</span>
+                  <div class="severity-legend"></div>
+                </div>
+                <div class="bug-list" id="bugList"></div>
+                <div class="output-header output-subheader">
+                  <span class="output-title">Fixed Code</span>
+                  <button class="btn btn-sm btn-ghost" id="copyDebugBtn" type="button">
+                    <i data-lucide="copy"></i>
+                    Copy Fixed Code
+                  </button>
+                </div>
+                <div class="file-content-area" id="fixedCodeArea"></div>
+              </div>
+              <div class="empty-state">
+                <i data-lucide="search-check"></i>
+                <strong>No debug run yet</strong>
+                <span>Bug findings and the fixed file will appear here.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-security" aria-labelledby="securityTitle">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Harden</p>
+              <h2 id="securityTitle">Security Audit</h2>
+            </div>
+            <p>Scan code for security issues and generate a hardened version.</p>
+          </div>
+
+          <div class="split-layout">
+            <div class="section-card">
+              <div class="section-title">
+                <span>Audit Source</span>
+                <code>security.input</code>
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="auditLang">Language / Framework</label>
+                  <select id="auditLang">
+                    <option value="javascript">JavaScript / Node.js</option>
+                    <option value="python">Python / Flask / Django</option>
+                    <option value="php">PHP</option>
+                    <option value="go">Go</option>
+                    <option value="html">HTML</option>
+                  </select>
+                </div>
+                <div class="form-group full-width">
+                  <label for="auditCode">Code</label>
+                  <textarea id="auditCode" rows="14" placeholder="// Paste code to audit..."></textarea>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-wide" id="auditBtn" type="button">
+                <i data-lucide="shield-check"></i>
+                Run Security Audit
+              </button>
+            </div>
+
+            <div class="section-card output-card">
+              <div class="section-title">
+                <span>Audit Output</span>
+                <code>security.report</code>
+              </div>
+              <div class="output-area hidden" id="auditOutput">
+                <div class="output-header">
+                  <span class="output-title">Vulnerability Report</span>
+                  <span class="audit-score" id="auditScore"></span>
+                </div>
+                <div class="vuln-list" id="vulnList"></div>
+                <div class="output-header output-subheader">
+                  <span class="output-title">Hardened Code</span>
+                  <button class="btn btn-sm btn-ghost" id="copyAuditBtn" type="button">
+                    <i data-lucide="copy"></i>
+                    Copy Hardened Code
+                  </button>
+                </div>
+                <div class="file-content-area" id="hardenedCodeArea"></div>
+              </div>
+              <div class="empty-state">
+                <i data-lucide="lock-keyhole"></i>
+                <strong>No audit yet</strong>
+                <span>Vulnerability findings and hardened code will appear here.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-chat" aria-labelledby="chatTitle">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Collaborate</p>
+              <h2 id="chatTitle">AI Chat</h2>
+            </div>
+            <p>Ask questions, inspect generated files, and apply proposed edits.</p>
+          </div>
+
+          <div class="chat-workspace">
+            <aside class="chat-history-panel" aria-label="Chat history">
+              <div class="history-header">
+                <span>Conversations</span>
+                <button class="btn btn-sm btn-ghost" id="newChatBtn" type="button">
+                  <i data-lucide="plus"></i>
+                  New
+                </button>
+              </div>
+              <div class="history-list" id="chatHistoryList"></div>
+              <button class="history-clear-btn" id="clearHistoryBtn" type="button">Clear history</button>
+            </aside>
+
+            <div class="chat-container">
+              <div class="chat-messages" id="chatMessages"></div>
+              <div class="chat-input-area">
+                <textarea id="chatInput" rows="2" placeholder="Ask Mendify about your generated workspace..." class="chat-input"></textarea>
+                <button class="btn btn-primary chat-send-btn" id="chatSendBtn" type="button">
+                  <i data-lucide="send"></i>
+                  Send
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="output-area hidden" id="chatEditPreview">
+            <div class="output-header">
+              <span class="output-title">Proposed Edits</span>
+              <button class="btn btn-sm btn-primary" id="applyEditBtn" type="button">
+                <i data-lucide="check"></i>
+                Apply Changes
+              </button>
+            </div>
+            <div class="chat-edit-content" id="chatEditContent"></div>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-settings" aria-labelledby="settingsTitle">
+          <div class="page-heading">
+            <div>
+              <p class="eyebrow">Personalize</p>
+              <h2 id="settingsTitle">Settings</h2>
+            </div>
+            <p>Manage your profile, theme, and workspace preferences.</p>
+          </div>
+
+          <div class="settings-layout">
+            <section class="section-card">
+              <div class="section-title">
+                <span>Profile</span>
+                <code>auth.me</code>
+              </div>
+              <div class="profile-card">
+                <div class="profile-avatar-large" id="settingsProfileInitials">ME</div>
+                <h3 id="settingsProfileName">Mendify user</h3>
+                <p id="settingsProfileEmail" class="profile-email-display">No email loaded</p>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label for="settingsUsername">Username</label>
+                    <input id="settingsUsername" type="text" autocomplete="username" minlength="3" maxlength="80" />
+                  </div>
+                  <div class="form-group">
+                    <label for="settingsEmail">Email</label>
+                    <input id="settingsEmail" type="email" autocomplete="email" />
+                  </div>
+                </div>
+                <div class="profile-meta-bar">
+                  <span>Member since</span>
+                  <strong id="settingsProfileJoined">--</strong>
+                </div>
+                <button class="btn btn-primary btn-wide" id="saveSettingsProfileBtn" type="button">
+                  <i data-lucide="save"></i>
+                  Save Profile
+                </button>
+              </div>
+            </section>
+
+            <div class="settings-stack">
+              <section class="section-card">
+                <div class="section-title">
+                  <span>Theme</span>
+                  <code>appearance.theme</code>
+                </div>
+                <div class="theme-options" role="radiogroup" aria-label="Theme">
+                  <button class="theme-option" data-theme-option="light" type="button">
+                    <span class="theme-swatch swatch-light"></span>
+                    <span>Light</span>
+                  </button>
+                  <button class="theme-option" data-theme-option="dark" type="button">
+                    <span class="theme-swatch swatch-dark"></span>
+                    <span>Dark</span>
+                  </button>
+                  <button class="theme-option" data-theme-option="aurora" type="button">
+                    <span class="theme-swatch swatch-aurora"></span>
+                    <span>Aurora</span>
+                  </button>
+                </div>
+              </section>
+
+              <section class="section-card">
+                <div class="section-title">
+                  <span>Interface Density</span>
+                  <code>appearance.density</code>
+                </div>
+                <div class="segmented-control" role="group" aria-label="Interface density">
+                  <button class="density-option" data-density-option="comfortable" type="button">Comfortable</button>
+                  <button class="density-option" data-density-option="compact" type="button">Compact</button>
+                </div>
+              </section>
+
+              <section class="section-card">
+                <div class="section-title">
+                  <span>AI Model Config</span>
+                  <code>ai.config</code>
+                </div>
+                <div class="ai-config-body" id="aiConfigBody">
+                  <p class="ai-config-loading">Loading AI config...</p>
+                </div>
+              </section>
+
+              <section class="section-card">
+                <div class="section-title">
+                  <span>Keyboard Shortcuts</span>
+                  <code>shortcuts</code>
+                </div>
+                <div class="shortcuts-grid">
+                  <div><kbd>Ctrl+1</kbd> <span>Compiler</span></div>
+                  <div><kbd>Ctrl+2</kbd> <span>Debugger</span></div>
+                  <div><kbd>Ctrl+3</kbd> <span>Security Audit</span></div>
+                  <div><kbd>Ctrl+4</kbd> <span>AI Chat</span></div>
+                  <div><kbd>Ctrl+5</kbd> <span>Settings</span></div>
+                  <div><kbd>Enter</kbd> <span>Send message</span></div>
+                  <div><kbd>?</kbd> <span>Show shortcuts</span></div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+  <script src="script.js"></script>
+</body>
+</html>
